@@ -14,23 +14,28 @@ class File
 
     public function exists(string $file) : bool
     {
-        return file_exists($file);
+        return @file_exists($file);
     }
 
     public function delete(string $file) : bool
     {
-        return unlink($file);
+        return @unlink($file);
     }
 
     public function create(string $file) : bool
     {
-        return touch($file);
+        return @touch($file);
+    }
+
+    public function changeDir(string $path) : bool
+    {
+        return @chdir($path);
     }
 
     public function getContent(string $file) : string
     {
         if ($this->exists($file)) {
-            return trim(file_get_contents($file));
+            return trim(@file_get_contents($file));
         }
         return '';
     }
@@ -51,7 +56,7 @@ class File
         if (!$this->exists($file)) {
             return false;
         }
-        return file_put_contents($file, trim($data), \FILE_APPEND) !== false;
+        return @file_put_contents($file, trim($data), \FILE_APPEND) !== false;
     }
 
 }

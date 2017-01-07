@@ -9,14 +9,13 @@ class Config
             'base_path' => __DIR__,
         ],
         'screen' => [
-            'name' => 'server_screen',
+            'name' => 'mc_server_screen',
         ],
         'server' => [
             'location' => 'mc-server',
-            'jar_name' => 'minecraft_server.jar',
-            'xmx'      => 1024,
-            'xms'      => 1024,
-            'nogui'    => true,
+            'jar'      => 'server.jar',
+            'xmx'      => 256,
+            'xms'      => 256,
         ],
         'http' => [
             'generate' => true,
@@ -27,11 +26,6 @@ class Config
         ],
     ];
 
-    /**
-     * @param string $key
-     *
-     * @return array|mixed|null
-     */
     public function get(string $key) {
         if (strpos($key, '.') !== false) {
             $keys = explode('.', $key);

@@ -6,6 +6,10 @@ class Output
 {
     protected $prefix;
 
+    protected $spinnerFrames = ['⠁', '⠂', '⠄', '⡀', '⢀', '⠠', '⠐', '⠈'];
+
+    protected $spinnerPosition = -1;
+
     protected $tagSets = [
         [
             'tags' => ['default'],
@@ -54,9 +58,17 @@ class Output
         return $this->prefix;
     }
 
+    public function clearPrefix() : \Qbi\Console\Output
+    {
+        $this->prefix = null;
+        return $this;
+    }
+
     public function writePrefix() : \Qbi\Console\Output
     {
-        $this->write($this->prefix . ' ');
+        if ($this->getPrefix() !== '') {
+            $this->write($this->getPrefix() . ' ');
+        }
         return $this;
     }
 
@@ -75,12 +87,19 @@ class Output
 
     public function writeln(string $string) : \Qbi\Console\Output
     {
-        if ($this->prefix) {
-            $this->write($this->prefix . ' ');
-        }
+        $this->writePrefix();
         $this->write($string);
         $this->newline();
         return $this;
+    }
+
+    public function error(string $string)
+    {
+        $this->clearPrefix();
+        $this->newline(2);
+        $this->writeln("<error>[ERROR]</error> {$string}");
+        $this->newline();
+        die();
     }
 
     public function parseTags(string $string) : string
@@ -106,5 +125,35 @@ class Output
         $string = str_replace("</{$tag}>", "\033[0m", $string);
 
         return $string;
+    }
+
+    public function startSpinner()
+    {
+        $this->animateSpinner();
+    }
+
+    public function animateSpinner()
+    {
+        $this->spinnerPosition++;
+        $this->write($this->spinnerFrames[$this->spinnerPosition % count($this->spinnerFrames)]);
+        $this->moveCursorBack(1);
+    }
+
+    public function endSpinner()
+    {
+        $this->spinnerPosition = -1;
+        $this->moveCursorBack(1);
+        $this->write(' ');
+        $this->newline();
+    }
+
+    public function moveCursorBack($number)
+    {
+        echo "\033[{$number}D";
+    }
+
+    public function moveCursorForward($number)
+    {
+        echo "\033[{$number}C";
     }
 }
