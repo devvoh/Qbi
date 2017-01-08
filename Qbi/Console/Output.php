@@ -4,13 +4,11 @@ namespace Qbi\Console;
 
 class Output
 {
-    protected $prefix;
-
-    protected $spinnerFrames = ['⠁', '⠂', '⠄', '⡀', '⢀', '⠠', '⠐', '⠈'];
-
+    protected $outputDate = true;
+    protected $dateFormat = '[Y-m-d H:i:s] ';
+    protected $spinnerFrames   = ['⠁', '⠂', '⠄', '⡀', '⢀', '⠠', '⠐', '⠈'];
     protected $spinnerPosition = -1;
-
-    protected $tagSets = [
+    protected $tagSets         = [
         [
             'tags' => ['default'],
             'style' => "0;0",
@@ -41,65 +39,48 @@ class Output
         ],
     ];
 
-    public function clear() : \Qbi\Console\Output
+    public function clear() : Output
     {
         system('clear');
         return $this;
     }
 
-    public function setPrefix(string $prefix) : \Qbi\Console\Output
+    public function writeDateIfEnabled() : Output
     {
-        $this->prefix = $prefix;
-        return $this;
-    }
-
-    public function getPrefix() : string
-    {
-        return $this->prefix;
-    }
-
-    public function clearPrefix() : \Qbi\Console\Output
-    {
-        $this->prefix = null;
-        return $this;
-    }
-
-    public function writePrefix() : \Qbi\Console\Output
-    {
-        if ($this->getPrefix() !== '') {
-            $this->write($this->getPrefix() . ' ');
+        if ($this->outputDate) {
+            $now = new \DateTime();
+            $this->write($now->format($this->dateFormat));
         }
         return $this;
     }
 
-    public function write(string $string) : \Qbi\Console\Output
+    public function write(string $string) : Output
     {
         $string = $this->parseTags($string);
         echo $string;
         return $this;
     }
 
-    public function newline(int $count = 1) : \Qbi\Console\Output
+    public function newline(int $count = 1) : Output
     {
         echo str_repeat(PHP_EOL, $count);
         return $this;
     }
 
-    public function writeln(string $string) : \Qbi\Console\Output
+    public function writeln(string $string) : Output
     {
-        $this->writePrefix();
+        $this->writeDateIfEnabled();
         $this->write($string);
         $this->newline();
         return $this;
     }
 
-    public function error(string $string)
+    public function writelns(array $lines) : Output
     {
-        $this->clearPrefix();
-        $this->newline(2);
-        $this->writeln("<error>[ERROR]</error> {$string}");
-        $this->newline();
-        die();
+        foreach ($lines as $line) {
+            $this->writeln($line);
+        }
+        return $this;
     }
 
     public function parseTags(string $string) : string

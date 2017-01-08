@@ -2,31 +2,30 @@
 
 namespace Qbi\Parser;
 
-use Qbi\Application;
+use \Qbi\Application;
 
 class Line
 {
-    protected $string = '';
-    protected $time = '';
-    protected $serverLabel = '';
-    protected $playerName = '';
-    protected $playerChat = '';
-    protected $command = '';
+    protected $string        = '';
+    protected $time          = '';
+    protected $serverLabel   = '';
+    protected $playerName    = '';
+    protected $playerMessage = '';
+    protected $commandString = '';
 
-    protected $isServerReady = false;
-    protected $isPlayerChat = false;
-    protected $isPlayerJoining = false;
-    protected $isPlayerLeaving = false;
-    protected $isQbi = false;
-    protected $isCommand = false;
-    protected $isUnimportant = false;
+    /**
+     * Our toggles
+     *
+     * @var bool
+     */
+    protected $serverReady   = false;
+    protected $playerChat    = false;
+    protected $playerJoining = false;
+    protected $playerLeaving = false;
+    protected $qbi           = false;
+    protected $command       = false;
 
-    public function __construct(
-        // Inevitable
-    ) {
-    }
-
-    public function setString(string $string) : \Qbi\Parser\Line
+    public function setString(string $string) : Line
     {
         // Remove the [SERVER] tag to allow the server chat to also trigger Qbi
         $string = str_replace("[Server] ", "", $string);
@@ -49,19 +48,17 @@ class Line
         $this->checkIsPlayerLeaving($string);
         $this->checkIsQbi($string);
 
-        if ($this->isPlayerChat() || $this->isPlayerJoining()) {
+        if ($this->isPlayerChat() || $this->isPlayerJoining() || $this->isPlayerLeaving()) {
             $this->extractPlayerName($string);
         }
         if ($this->isPlayerChat()) {
-            $this->extractPlayerChat($string);
+            $this->extractPlayerMessage($string);
 
-            $this->checkIsCommand($this->playerChat);
+            $this->checkIsCommand($this->playerMessage);
         }
         if ($this->isCommand()) {
-            $this->extractCommand($this->playerChat);
+            $this->extractCommand($this->playerMessage);
         }
-
-        $this->checkIsUnimportant();
 
         return $this;
     }
@@ -76,14 +73,14 @@ class Line
         return $this->serverLabel;
     }
 
-    public function getPlayerChat() : string
+    public function getPlayerMessage() : string
     {
-        return $this->playerChat;
+        return $this->playerMessage;
     }
 
-    public function getCommand() : string
+    public function getCommandString() : string
     {
-        return $this->command;
+        return $this->commandString;
     }
 
     public function getString() : string
@@ -98,97 +95,81 @@ class Line
 
     public function isServerReady() : bool
     {
-        return $this->isServerReady;
+        return $this->serverReady;
     }
 
     public function isPlayerChat() : bool
     {
-        return $this->isPlayerChat;
+        return $this->playerChat;
     }
 
     public function isPlayerJoining() : bool
     {
-        return $this->isPlayerJoining;
+        return $this->playerJoining;
     }
 
     public function isPlayerLeaving() : bool
     {
-        return $this->isPlayerLeaving;
+        return $this->playerLeaving;
     }
 
     public function isQbi() : bool
     {
-        return $this->isQbi;
+        return $this->qbi;
     }
 
     public function isCommand() : bool
     {
-        return $this->isCommand;
-    }
-
-    public function isUnimportant() : bool
-    {
-        return $this->isUnimportant;
+        return $this->command;
     }
 
     protected function checkIsServerReady(string $string) : bool
     {
-        $this->isServerReady = substr($string, 0, 26) === "[Server thread/INFO]: Done";
-        return $this->isServerReady;
+        $this->serverReady = substr($string, 0, 26) === "[Server thread/INFO]: Done";
+        return $this->serverReady;
     }
 
     protected function checkIsPlayerChat(string $string) : bool
     {
-        $this->isPlayerChat = (strpos($string, '<') !== false && strpos($string, '>') !== false);
-        return $this->isPlayerChat;
+        $this->playerChat = (strpos($string, '<') !== false && strpos($string, '>') !== false);
+        return $this->playerChat;
     }
 
     protected function checkIsPlayerJoining(string $string) : bool
     {
-        $this->isPlayerJoining = substr($string, -15) === 'joined the game';
-        return $this->isPlayerJoining;
+        $this->playerJoining = substr($string, -15) === 'joined the game';
+        return $this->playerJoining;
     }
 
     protected function checkIsPlayerLeaving(string $string) : bool
     {
-        $this->isPlayerLeaving = substr($string, -13) === 'left the game';
-        return $this->isPlayerLeaving;
+        $this->playerLeaving = substr($string, -13) === 'left the game';
+        return $this->playerLeaving;
     }
 
     protected function checkIsQbi(string $string) : bool
     {
-        $this->isQbi = substr($string, 0, 5) === \Qbi\Application::QBI_PREFIX;
-        return $this->isQbi;
+        $this->qbi = substr($string, 0, 5) === Application::QBI_PREFIX;
+        return $this->qbi;
     }
 
     protected function checkIsCommand(string $string) : bool
     {
         if ($this->isPlayerChat()) {
-            $commandString = \Qbi\Application::QBI_COMMAND . ' ';
-            $this->isCommand = substr($string, 0, strlen($commandString)) === $commandString;
+            $commandString = Application::QBI_COMMAND . ' ';
+            $this->command = substr($string, 0, strlen($commandString)) === $commandString;
         }
         if ($this->isCommand()) {
             // Command supersedes playerChat. Though it starts as both, for Qbi it now is just a command.
-            $this->isPlayerChat = false;
+            $this->playerChat = false;
         }
-        return $this->isCommand;
-    }
-
-    protected function checkIsUnimportant() : bool
-    {
-        $this->isUnimportant = !(
-            $this->isServerReady()
-            || $this->isPlayerJoining()
-            || $this->isPlayerLeaving()
-            || $this->isCommand()
-        );
-        return $this->isUnimportant;
+        return $this->command;
     }
 
     protected function extractCommand(string $string)
     {
-        $commandString = \Qbi\Application::QBI_COMMAND . ' ';
-        $this->command = str_replace($commandString, "", $string);
+        $commandString = Application::QBI_COMMAND . ' ';
+        $this->commandString = str_replace($commandString, "", $string);
     }
 
     protected function extractPlayerName(string $string)
@@ -199,13 +180,14 @@ class Line
         } elseif ($this->isPlayerJoining()) {
             $this->playerName = str_replace(" joined the game", "", $string);
         } elseif ($this->isPlayerLeaving()) {
+            echo 'HELLO';
             $this->playerName = str_replace(" left the game", "", $string);
         }
     }
-    protected function extractPlayerChat(string $string)
+    protected function extractPlayerMessage(string $string)
     {
         $almost = explode('>', $string);
-        $this->playerChat = trim($almost[1]);
+        $this->playerMessage = trim($almost[1]);
     }
 
     protected function extractTimeAndTrim(string $string) : string

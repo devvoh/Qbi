@@ -5,9 +5,6 @@ namespace Qbi;
 class Config
 {
     protected $options = [
-        'env' => [
-            'base_path' => __DIR__,
-        ],
         'screen' => [
             'name' => 'mc_server_screen',
         ],
@@ -19,11 +16,26 @@ class Config
         ],
         'http' => [
             'generate' => true,
-            'page' => [
-                'target_dir' => '/var/www/html/qbi.html',
-                'title'      => 'Qbi ' . Application::VERSION . ' status page',
+            'target' => [
+                'dir'  => 'html/qbi',
+                'file' => 'index.html',
             ],
+            'page' => [
+                'title' => 'Qbi information page',
+            ]
         ],
+        'commands' => [
+            'HelloWorld',
+            'Uptime',
+            'Help',
+        ],
+        'tasks' => [
+            'HelloWorld',
+        ],
+        'triggers' => [
+            'PlayerJoin',
+            'PlayerLeave',
+        ]
     ];
 
     public function get(string $key) {

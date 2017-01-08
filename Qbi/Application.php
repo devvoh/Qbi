@@ -4,120 +4,94 @@ namespace Qbi;
 
 class Application
 {
-    /**
-     * @var \Qbi\Config
-     */
-    protected $config;
-
-    /**
-     * @var \Qbi\Supervisor
-     */
-    protected $supervisor;
-
-    /**
-     * @var \Qbi\Parser
-     */
-    protected $parser;
-
-    /**
-     * @var \Qbi\Console\Output
-     */
-    protected $output;
-
-    /**
-     * @var \Qbi\Console\Input
-     */
-    protected $input;
-
-    /**
-     * @var string
-     */
-    const VERSION = "0.1.0";
-
-    /**
-     * @var string
-     */
-    const QBI_PREFIX = "[QBI]";
-
-    /**
-     * @var string
-     */
+    const VERSION     = "0.1.0";
+    const QBI_PREFIX  = "[QBI]";
     const QBI_COMMAND = "q";
 
+    protected $config;
+    protected $supervisor;
+    protected $command;
+    protected $trigger;
+    protected $task;
+    protected $parser;
+    protected $output;
+    protected $input;
+
     public function __construct(
-        \Qbi\Config         $config,
-        \Qbi\Supervisor     $supervisor,
-        \Qbi\Parser         $parser,
-        \Qbi\Console\Output $output,
-        \Qbi\Console\Input  $input
+        Config         $config,
+        Supervisor     $supervisor,
+        Command        $command,
+        Trigger        $trigger,
+        Task           $task,
+        Parser         $parser,
+        Console\Output $output,
+        Console\Input  $input
     ) {
         $this->config     = $config;
         $this->supervisor = $supervisor;
+        $this->command    = $command;
+        $this->trigger    = $trigger;
+        $this->task       = $task;
         $this->parser     = $parser;
         $this->output     = $output;
         $this->input      = $input;
 
         $this->parser->init();
-        $this->output->setPrefix('[QBI]');
     }
 
-    public function start() : \Qbi\Application
+    public function start() : Application
     {
         $this->output->clear();
 
-        $prefix = $this->output->getPrefix();
-        $this->output->setPrefix('');
-
-        $this->output->writeln('Qbi version ' . self::VERSION . ' - Minecraft vanilla Server Monitor');
-        $this->output->writeln('----------------------------------------------------');
-        $this->output->newline();
-
-        $this->output->setPrefix($prefix);
-
-        $this->output->writeln('Starting Supervisor...');
+        $this->output->writelns([
+            'Qbi version ' . self::VERSION . ' - Minecraft Server Monitor',
+            '--------------------------------------------',
+            'Starting Supervisor...',
+        ]);
 
         $this->supervisor->start();
 
+        $this->output->writeDateIfEnabled();
+        $this->output->write('Loading commands... ');
+        $this->output->write("{$this->command->init()} loaded");
         $this->output->newline();
 
-        $this->output->writePrefix();
-        $this->output->write('Server is online, monitoring log ');
-        $this->output->startSpinner();
+        $this->output->writeDateIfEnabled();
+        $this->output->write('Loading triggers... ');
+        $this->output->write("{$this->trigger->init()} loaded");
+        $this->output->newline();
+
+        $this->output->writeDateIfEnabled();
+        $this->output->write('Loading tasks...... ');
+        $this->output->write("{$this->task->init()} loaded");
+        $this->output->newline();
+
+        $this->output->writeln("Monitoring...");
         for (;;) {
             if (!$this->supervisor->checkScreenStatus() || !$this->supervisor->checkServerStatus()) {
-                $this->output->newline();
-                $this->output->writeln("Server has gone offline, restarting.");
+                $this->output->writeln("<error>Server has gone offline, restarting.</error>");
                 $this->supervisor->restart();
             }
 
             usleep(250000);
-            $this->output->animateSpinner();
 
             $lines = $this->parser->go();
             foreach ($lines as $line) {
+                // See if the line is a command, if so, attempt to handle it.
                 if ($line->isCommand()) {
-                    // Handle commands
+                    $this->command->handleLine($line);
                 }
-                if ($line->isPlayerJoining()) {
-                    // Handle player joining
-                }
-                if ($line->isPlayerLeaving()) {
-                    // Handle player leaving
-                }
-                if ($line->isPlayerChat()) {
-                    // Handle player chatting?
-                }
-                if ($line->isQbi()) {
-                    // Ignore
-                }
-                if ($line->isUnimportant()) {
-                    // Ignore
+                // If it's not player chat, it might be something we can trigger on
+                if (!$line->isPlayerChat()) {
+                    $this->trigger->handleLine($line);
                 }
             }
 
-            // Handle Tasks here
+            $this->task->start();
+
+            // Handle Tasks here. Since they're not based on user input but on time and circumstances, we'll need to
+            // make sure they get handled when they're supposed to. Make them run in the background, perhaps?
         }
-        $this->output->endSpinner();
 
         return $this;
     }

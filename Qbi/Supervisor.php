@@ -4,58 +4,29 @@ namespace Qbi;
 
 class Supervisor
 {
-    /**
-     * @var \Qbi\System
-     */
     protected $system;
-
-    /**
-     * @var \Qbi\Config
-     */
     protected $config;
-
-    /**
-     * @var \Qbi\File
-     */
     protected $file;
-
-    /**
-     * @var \Qbi\Console\Output
-     */
     protected $output;
-
-    /**
-     * @var \Qbi\Console\Input
-     */
     protected $input;
-
-    /**
-     * @var \Qbi\Parser
-     */
     protected $parser;
 
-    /**
-     * @var bool
-     */
+    /** @var bool */
     protected $screenStatus = false;
 
-    /**
-     * @var bool
-     */
+    /** @var bool */
     protected $serverStatus = false;
 
-    /**
-     * @var bool
-     */
+    /** @var bool */
     protected $serverStarting = false;
 
     public function __construct(
-        \Qbi\System         $system,
-        \Qbi\Config         $config,
-        \Qbi\File           $file,
-        \Qbi\Console\Output $output,
-        \Qbi\Console\Input  $input,
-        \Qbi\Parser         $parser
+        System         $system,
+        Config         $config,
+        File           $file,
+        Console\Output $output,
+        Console\Input  $input,
+        Parser         $parser
     ) {
         $this->system = $system;
         $this->config = $config;
@@ -65,12 +36,11 @@ class Supervisor
         $this->parser = $parser;
     }
 
-    public function start()
+    public function start() : Supervisor
     {
-        $this->output->newline();
-
         $this->checkCurrentStatus();
-        $this->output->writeln('Initial status of services:');
+        $this->output->writeDateIfEnabled();
+        $this->output->write('Initial status of services: ');
 
         // If server says OK but screen does not, we're out of sync. Set the server to OFF
         if (!$this->screenStatus && $this->serverStatus) {
@@ -78,7 +48,6 @@ class Supervisor
             $this->serverStatus = false;
         }
 
-        $this->output->writePrefix();
         $this->output->write('[' . ($this->screenStatus ? '<correct>✓</correct>' : '<error>✗</error>') . '] Screen ');
         $this->output->write('[' . ($this->serverStatus ? '<correct>✓</correct>' : '<error>✗</error>') . '] Server ');
         $this->output->newline();
@@ -89,12 +58,16 @@ class Supervisor
         if (!$this->serverStatus) {
             $this->startServer();
         }
+
+        return $this;
     }
 
-    protected function checkCurrentStatus()
+    protected function checkCurrentStatus() : bool
     {
         $this->checkScreenStatus();
         $this->checkServerStatus();
+
+        return $this->screenStatus && $this->serverStatus;
     }
 
     public function checkScreenStatus() : bool
@@ -117,7 +90,6 @@ class Supervisor
 
     public function restart()
     {
-        $this->output->newline();
         if (!$this->checkScreenStatus()) {
             $this->startScreen();
         }
@@ -127,32 +99,32 @@ class Supervisor
     protected function startScreen()
     {
         $screenName = $this->config->get('screen.name');
-        $this->output->writePrefix();
+        $this->output->writeDateIfEnabled();
         $this->output->write("Starting screen '{$screenName}'...");
 
         $this->system->run("screen -Sdm {$screenName}");
 
         $this->screenStatus = true;
-        $this->output->write(" <correct>✓</correct>");
+        $this->output->write(" [<correct>✓</correct>]");
         $this->output->newline();
     }
 
     protected function endScreen()
     {
         $screenName = $this->config->get('screen.name');
-        $this->output->writePrefix();
+        $this->output->writeDateIfEnabled();
         $this->output->write("Ending screen '{$screenName}'...");
 
         $this->system->run("screen -S {$screenName} -X quit");
 
         $this->screenStatus = false;
-        $this->output->write(" <correct>✓</correct>");
+        $this->output->write(" [<correct>✓</correct>]");
         $this->output->newline();
     }
 
     protected function startServer()
     {
-        $this->output->writePrefix();
+        $this->output->writeDateIfEnabled();
         $this->output->write("Starting server");
         $command = [];
 
@@ -163,7 +135,7 @@ class Supervisor
         $serverPath     = realpath(__DIR__ . '/..') . '/' . $serverLocation . '/' . $serverJar;
 
         if (!$this->file->exists($serverPath)) {
-            $this->output->error("Server could not be found at '{$serverPath}'");
+            throw new Error("Server could not be found at '{$serverPath}'");
         }
 
         $this->file->delete($serverLocation . '/logs/latest.log');
@@ -198,5 +170,6 @@ class Supervisor
 
         $this->output->write(" <correct>✓</correct>");
         $this->output->newline();
+        $this->output->writeln('<correct>Server is online.</correct>');
     }
 }

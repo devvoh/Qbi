@@ -7,7 +7,7 @@ class System
     protected $config;
 
     public function __construct(
-        \Qbi\Config $config
+        Config $config
     ) {
         $this->config = $config;
     }

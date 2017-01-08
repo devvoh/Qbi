@@ -4,54 +4,29 @@ namespace Qbi;
 
 class Parser
 {
-    /**
-     * @var \Qbi\System
-     */
     protected $system;
-
-    /**
-     * @var \Qbi\Config
-     */
     protected $config;
-
-    /**
-     * @var \Qbi\File
-     */
     protected $file;
-
-    /**
-     * @var \Qbi\Console\Output
-     */
     protected $output;
-
-    /**
-     * @var \Qbi\Console\Input
-     */
     protected $input;
-
-    /**
-     * @var string
-     */
     protected $logLocation;
 
-    /**
-     * @var int
-     */
+    /** @var int */
     protected $lastLineParsed = 0;
 
     /**
-     * @param \Qbi\System         $system
-     * @param \Qbi\Config         $config
-     * @param \Qbi\File           $file
-     * @param \Qbi\Console\Output $output
-     * @param \Qbi\Console\Input  $input
+     * @param System         $system
+     * @param Config         $config
+     * @param File           $file
+     * @param Console\Output $output
+     * @param Console\Input  $input
      */
     public function __construct(
-        \Qbi\System         $system,
-        \Qbi\Config         $config,
-        \Qbi\File           $file,
-        \Qbi\Console\Output $output,
-        \Qbi\Console\Input  $input
+        System         $system,
+        Config         $config,
+        File           $file,
+        Console\Output $output,
+        Console\Input  $input
     ) {
         $this->system = $system;
         $this->config = $config;
@@ -62,10 +37,11 @@ class Parser
         $this->logLocation = $this->config->get('server.location') . '/logs/latest.log';
     }
 
-    public function init()
+    public function init() : Parser
     {
         $lines = $this->getLines();
         $this->lastLineParsed = count($lines);
+        return $this;
     }
 
     /**
@@ -83,7 +59,7 @@ class Parser
         $parsedLines = [];
         foreach ($lines as $lineString) {
             /** @var \Qbi\Parser\Line $line */
-            $line = \Qbi\DI::create(\Qbi\Parser\Line::class);
+            $line = DI::create(Parser\Line::class);
             $line->setString($lineString);
 
             $parsedLines[] = $line;
@@ -95,6 +71,9 @@ class Parser
         return $parsedLines;
     }
 
+    /**
+     * @return string[]
+     */
     public function getLines() : array
     {
         if (!$this->file->exists($this->logLocation)) {
