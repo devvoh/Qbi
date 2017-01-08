@@ -1,6 +1,6 @@
 <?php
 
-namespace Qbi\Plugins\Commands;
+namespace QbiPlugins\Commands;
 
 class HelloWorld extends \Qbi\Plugins\Base
 {

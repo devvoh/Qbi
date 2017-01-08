@@ -1,23 +1,22 @@
 <?php
 
-namespace Qbi\Plugins\Triggers;
+namespace QbiPlugins\Triggers;
 
-class PlayerLeave extends \Qbi\Plugins\Base
+class PlayerJoin extends \Qbi\Plugins\Base
 {
     public function init()
     {
-        $this->setKeyword('playerleave');
-        $this->setMatchString('left the game');
+        $this->setKeyword('playerjoin');
+        $this->setMatchString('joined the game');
 
         $action = function(string $event, \Qbi\Parser\Line $line) {
             if (!$this->matchesWithString($line->getString())) {
                 return;
             }
 
-            $this->communicator->say("Bye bye to {$line->getPlayerName()}!");
+            $this->communicator->say("Welcome to {$line->getPlayerName()}!");
         };
 
         $this->setAction($action);
     }
-
 }

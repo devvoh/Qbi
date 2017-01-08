@@ -2,7 +2,7 @@
 
 namespace Qbi\Plugins;
 
-use Qbi\Command;
+use Qbi\Plugin;
 use Qbi\Communicator;
 use Qbi\Config;
 use Qbi\Error;
@@ -15,7 +15,7 @@ abstract class Base
     protected $file;
     protected $communicator;
     protected $hook;
-    protected $command;
+    protected $plugin;
 
     /** @var string */
     protected $keyword = '';
@@ -34,13 +34,13 @@ abstract class Base
         File         $file,
         Communicator $communicator,
         Hook         $hook,
-        Command      $command
+        Plugin       $plugin
     ) {
         $this->config       = $config;
         $this->file         = $file;
         $this->communicator = $communicator;
         $this->hook         = $hook;
-        $this->command      = $command;
+        $this->plugin       = $plugin;
     }
 
     abstract public function init();

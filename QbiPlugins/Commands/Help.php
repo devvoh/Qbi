@@ -1,6 +1,6 @@
 <?php
 
-namespace Qbi\Plugins\Commands;
+namespace QbiPlugins\Commands;
 
 class Help extends \Qbi\Plugins\Base
 {
@@ -10,7 +10,7 @@ class Help extends \Qbi\Plugins\Base
         $this->setHelp('This screen.');
 
         $action = function(string $event, \Qbi\Parser\Line $line) {
-            $commandsHelp = $this->command->getCommandsHelp();
+            $commandsHelp = $this->plugin->getCommandsHelp();
 
             $maxLength = 36;
 

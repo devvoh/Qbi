@@ -1,6 +1,6 @@
 <?php
 
-namespace Qbi\Plugins\Commands;
+namespace QbiPlugins\Commands;
 
 class Uptime extends \Qbi\Plugins\Base
 {

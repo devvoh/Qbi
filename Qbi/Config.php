@@ -27,10 +27,10 @@ class Config
         'commands' => [
             'HelloWorld',
             'Uptime',
+            'Spawn',
             'Help',
         ],
         'tasks' => [
-            'HelloWorld',
         ],
         'triggers' => [
             'PlayerJoin',

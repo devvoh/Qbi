@@ -1,6 +1,6 @@
 <?php
 
-namespace Qbi\Plugins\Tasks;
+namespace QbiPlugins\Tasks;
 
 class HelloWorld extends \Qbi\Plugins\Base
 {

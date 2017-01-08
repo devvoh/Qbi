@@ -10,9 +10,7 @@ class Application
 
     protected $config;
     protected $supervisor;
-    protected $command;
-    protected $trigger;
-    protected $task;
+    protected $plugin;
     protected $parser;
     protected $output;
     protected $input;
@@ -20,18 +18,14 @@ class Application
     public function __construct(
         Config         $config,
         Supervisor     $supervisor,
-        Command        $command,
-        Trigger        $trigger,
-        Task           $task,
+        Plugin         $plugin,
         Parser         $parser,
         Console\Output $output,
         Console\Input  $input
     ) {
         $this->config     = $config;
         $this->supervisor = $supervisor;
-        $this->command    = $command;
-        $this->trigger    = $trigger;
-        $this->task       = $task;
+        $this->plugin     = $plugin;
         $this->parser     = $parser;
         $this->output     = $output;
         $this->input      = $input;
@@ -41,8 +35,6 @@ class Application
 
     public function start() : Application
     {
-        $this->output->clear();
-
         $this->output->writelns([
             'Qbi version ' . self::VERSION . ' - Minecraft Server Monitor',
             '--------------------------------------------',
@@ -51,20 +43,8 @@ class Application
 
         $this->supervisor->start();
 
-        $this->output->writeDateIfEnabled();
-        $this->output->write('Loading commands... ');
-        $this->output->write("{$this->command->init()} loaded");
-        $this->output->newline();
-
-        $this->output->writeDateIfEnabled();
-        $this->output->write('Loading triggers... ');
-        $this->output->write("{$this->trigger->init()} loaded");
-        $this->output->newline();
-
-        $this->output->writeDateIfEnabled();
-        $this->output->write('Loading tasks...... ');
-        $this->output->write("{$this->task->init()} loaded");
-        $this->output->newline();
+        $this->output->writeln('Loading Plugins:');
+        $this->plugin->init();
 
         $this->output->writeln("Monitoring...");
         for (;;) {
@@ -79,15 +59,15 @@ class Application
             foreach ($lines as $line) {
                 // See if the line is a command, if so, attempt to handle it.
                 if ($line->isCommand()) {
-                    $this->command->handleLine($line);
+                    $this->plugin->handleLineAsCommand($line);
                 }
                 // If it's not player chat, it might be something we can trigger on
                 if (!$line->isPlayerChat()) {
-                    $this->trigger->handleLine($line);
+                    $this->plugin->handleLineAsTrigger($line);
                 }
             }
 
-            $this->task->start();
+            $this->plugin->runTasks();
 
             // Handle Tasks here. Since they're not based on user input but on time and circumstances, we'll need to
             // make sure they get handled when they're supposed to. Make them run in the background, perhaps?
