@@ -49,8 +49,8 @@ class Communicator
 
     public function title(
         string $playerName,
-        string $type = 'title',
         string $message,
+        string $type = 'title',
         string $color = 'white',
         bool $bold = false,
         bool $italic = false

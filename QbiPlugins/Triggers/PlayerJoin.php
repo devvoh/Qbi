@@ -14,8 +14,16 @@ class PlayerJoin
                     new \DateTime(), // means now
                     5, // We wait this amount in seconds before we start
                     function() use ($pluginManager, $line) {
-                        $pluginManager->getCommunicator()->say(
-                            "Welcome to {$line->getPlayerName()}!"
+                        $pluginManager->getCommunicator()->title(
+                            $line->getPlayerName(),
+                            "Hi, {$line->getPlayerName()}!",
+                            "title",
+                            "gold"
+                        );
+                        $pluginManager->getCommunicator()->title(
+                            $line->getPlayerName(),
+                            "Type 'q help' for commands.",
+                            "subtitle"
                         );
                     },
                     1 // run only once

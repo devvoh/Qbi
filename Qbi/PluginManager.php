@@ -196,7 +196,6 @@ class PluginManager
 
                 $task['runCount']++;
                 if ($task['runTimes'] !== 0 && $task['runCount'] >= $task['runTimes']) {
-                    echo 'UNSET';
                     unset($this->tasks[$key]);
                 }
             }
