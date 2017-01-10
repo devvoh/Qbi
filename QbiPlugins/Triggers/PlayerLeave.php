@@ -2,22 +2,18 @@
 
 namespace QbiPlugins\Triggers;
 
-class PlayerLeave extends \Qbi\Plugins\Base
+class PlayerLeave
 {
-    public function init()
+    public function init(\Qbi\PluginManager $pluginManager)
     {
-        $this->setKeyword('playerleave');
-        $this->setMatchString('left the game');
-
-        $action = function(string $event, \Qbi\Parser\Line $line) {
-            if (!$this->matchesWithString($line->getString())) {
-                return;
+        $pluginManager->addTrigger(
+            ['left the game'],
+            function(\Qbi\Parser\Line $line) use ($pluginManager) {
+                $pluginManager->getCommunicator()->say(
+                    "And with a heavy heart we say goodbye to {$line->getPlayerName()}..."
+                );
             }
-
-            $this->communicator->say("Bye bye to {$line->getPlayerName()}!");
-        };
-
-        $this->setAction($action);
+        );
     }
 
 }

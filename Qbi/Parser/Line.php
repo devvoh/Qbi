@@ -180,7 +180,6 @@ class Line
         } elseif ($this->isPlayerJoining()) {
             $this->playerName = str_replace(" joined the game", "", $string);
         } elseif ($this->isPlayerLeaving()) {
-            echo 'HELLO';
             $this->playerName = str_replace(" left the game", "", $string);
         }
     }

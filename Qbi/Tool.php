@@ -43,4 +43,32 @@ class Tool
         }
         return implode(', ', $diffString);
     }
+
+    public static function secondsFromMinutes(int $minutes) :int
+    {
+        return $minutes * 60;
+    }
+
+    public static function secondsFromHours(int $hours) :int
+    {
+        return self::secondsFromMinutes($hours * 60);
+    }
+
+    public static function secondsFromDays(int $days) :int
+    {
+        return self::secondsFromHours($days * 24);
+    }
+
+    public static function secondsFromWeeks(int $weeks) :int
+    {
+        return self::secondsFromDays($weeks * 7);
+    }
+
+    /**
+     * We settle for 30.5, since it's close enough.
+     */
+    public static function secondsFromMonth(int $months) :int
+    {
+        return self::secondsFromDays($months * 30.5);
+    }
 }

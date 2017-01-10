@@ -24,18 +24,30 @@ class Config
                 'title' => 'Qbi information page',
             ]
         ],
-        'commands' => [
-            'HelloWorld',
-            'Uptime',
-            'Spawn',
-            'Help',
+        'plugins' => [
+            'commands' => [
+                'Uptime',
+                'Spawn',
+                'Help',
+            ],
+            'tasks' => [
+                'Midnight',
+            ],
+            'triggers' => [
+                'PlayerJoin',
+                'PlayerLeave',
+            ],
         ],
-        'tasks' => [
+        'pluginSettings' => [
+            'commands' => [
+                'Spawn' => [
+                    'x' => -350,
+                    'y' => 64,
+                    'z' => 214,
+                    'message' => '{playerName} panicked and has been teleported to spawn!',
+                ],
+            ],
         ],
-        'triggers' => [
-            'PlayerJoin',
-            'PlayerLeave',
-        ]
     ];
 
     public function get(string $key) {

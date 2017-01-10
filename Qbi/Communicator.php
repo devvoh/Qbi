@@ -35,9 +35,15 @@ class Communicator
     public function tellRaw(string $playerName, string $message) : Communicator
     {
         $json = $this->jsonEncode([
-            "text" => $message
+            "text" => $message,
         ]);
         $this->system->runOnScreen("/tellraw {$playerName} {$json}");
+        return $this;
+    }
+
+    public function tellRawWithPrefix(string $playerName, string $message) : Communicator
+    {
+        $this->tellRaw($playerName, "{$this->prefix} {$message}");
         return $this;
     }
 
@@ -68,6 +74,9 @@ class Communicator
      * @return string
      */
     protected function jsonEncode($array) : string {
+        foreach ($array as &$value) {
+            $value = str_replace("'", "’", $value);
+        }
         $json = json_encode($array);
         return $json;
     }

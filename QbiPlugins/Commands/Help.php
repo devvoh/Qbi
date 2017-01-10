@@ -2,29 +2,32 @@
 
 namespace QbiPlugins\Commands;
 
-class Help extends \Qbi\Plugins\Base
+class Help
 {
-    public function init()
+    public function init(\Qbi\PluginManager $pluginManager)
     {
-        $this->setKeyword('help');
-        $this->setHelp('This screen.');
+        $pluginManager->addCommand(
+            ['help'],
+            'Information about Qbi.',
+            function(\Qbi\Parser\Line $line) use ($pluginManager) {
+                $commands = $pluginManager->getCommands();
 
-        $action = function(string $event, \Qbi\Parser\Line $line) {
-            $commandsHelp = $this->plugin->getCommandsHelp();
+                $maxLength = 36;
 
-            $maxLength = 36;
+                $pluginManager->getCommunicator()->tellRaw($line->getPlayerName(), "Qbi " . \Qbi\Application::VERSION . " -- Help");
+                $pluginManager->getCommunicator()->tellRaw($line->getPlayerName(), str_repeat('-', $maxLength));
+                $pluginManager->getCommunicator()->tellRaw($line->getPlayerName(), "Qbi is a supervisor. It keeps the server online in case");
+                $pluginManager->getCommunicator()->tellRaw($line->getPlayerName(), "it should crash. It also offers some commands.");
+                $pluginManager->getCommunicator()->tellRaw($line->getPlayerName(), str_repeat('-', $maxLength));
 
-            $this->communicator->tellRaw($line->getPlayerName(), "Qbi " . \Qbi\Application::VERSION . " -- Help");
-            $this->communicator->tellRaw($line->getPlayerName(), str_repeat('-', $maxLength));
-            $this->communicator->tellRaw($line->getPlayerName(), "Qbi is a supervisor. It keeps the server online in case");
-            $this->communicator->tellRaw($line->getPlayerName(), "it should crash. It also offers some commands.");
-            $this->communicator->tellRaw($line->getPlayerName(), str_repeat('-', $maxLength));
-
-            foreach ($commandsHelp as $command => $help) {
-                $this->communicator->tellRaw($line->getPlayerName(), "q {$command}");
+                foreach ($commands as $command) {
+                    $commandString = implode(' | ', $command['keywords']);
+                    $pluginManager->getCommunicator()->tellRaw(
+                        $line->getPlayerName(),
+                        "q {$commandString}"
+                    );
+                }
             }
-        };
-
-        $this->setAction($action);
+        );
     }
 }

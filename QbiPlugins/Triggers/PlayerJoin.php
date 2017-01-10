@@ -2,21 +2,26 @@
 
 namespace QbiPlugins\Triggers;
 
-class PlayerJoin extends \Qbi\Plugins\Base
+class PlayerJoin
 {
-    public function init()
+    public function init(\Qbi\PluginManager $pluginManager)
     {
-        $this->setKeyword('playerjoin');
-        $this->setMatchString('joined the game');
+        $pluginManager->addTrigger(
+            ['joined the game'],
+            function(\Qbi\Parser\Line $line) use ($pluginManager) {
+                // We want to make sure the login process is finished, so we add a task to complete in 5 seconds time.
+                $pluginManager->addTask(
+                    new \DateTime(), // means now
+                    5, // We wait this amount in seconds before we start
+                    function() use ($pluginManager, $line) {
+                        $pluginManager->getCommunicator()->say(
+                            "Welcome to {$line->getPlayerName()}!"
+                        );
+                    },
+                    1 // run only once
+                );
 
-        $action = function(string $event, \Qbi\Parser\Line $line) {
-            if (!$this->matchesWithString($line->getString())) {
-                return;
             }
-
-            $this->communicator->say("Welcome to {$line->getPlayerName()}!");
-        };
-
-        $this->setAction($action);
+        );
     }
 }

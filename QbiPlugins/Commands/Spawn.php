@@ -2,18 +2,37 @@
 
 namespace QbiPlugins\Commands;
 
-class Spawn extends \Qbi\Plugins\Base
+class Spawn
 {
-    public function init()
+    public function init(\Qbi\PluginManager $pluginManager)
     {
-        $this->setKeyword('s');
-        $this->setHelp('Teleport back to spawn, for a soothing bath.');
+        $pluginManager->addCommand(
+            ['spawn', 's'],
+            'This will teleport back to spawn.',
+            function(\Qbi\Parser\Line $line) use ($pluginManager) {
+                $spawnConfig = $pluginManager->getConfig()->get('pluginSettings.commands.Spawn');
 
-        $action = function(string $event, \Qbi\Parser\Line $line) {
-            $this->communicator->tp($line->getPlayerName(), -350, 64, 214);
-            $this->communicator->say($line->getPlayerName() . ' panicked and has been teleported to spawn!');
-        };
+                if (!$spawnConfig || !$spawnConfig['x'] || !$spawnConfig['y'] || !$spawnConfig['z']) {
+                    $pluginManager->getCommunicator()->tellRawWithPrefix(
+                        $line->getPlayerName(),
+                        "Spawn isn't configured properly. Tell the server admin to add the coordinates to Qbi's configuration!"
+                    );
+                    return;
+                }
 
-        $this->setAction($action);
+                $pluginManager->getCommunicator()->tp(
+                    $line->getPlayerName(),
+                    $spawnConfig['x'],
+                    $spawnConfig['y'],
+                    $spawnConfig['z']
+                );
+
+                $message = $line->getPlayerName() . ' panicked and has been teleported to spawn!';
+                if ($spawnConfig['message']) {
+                    $message = str_replace('{playerName}', $line->getPlayerName(), $spawnConfig['message']);
+                }
+                $pluginManager->getCommunicator()->say($message);
+            }
+        );
     }
 }
