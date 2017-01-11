@@ -16,6 +16,16 @@ class Tool
         return static::niceDiffFromDateTime($start, $end);
     }
 
+    public static function niceDiffFromSeconds(int $seconds) : string
+    {
+        $start = new \DateTime();
+        $end   = new \DateTime();
+
+        $end->modify("+{$seconds} seconds");
+
+        return static::niceDiffFromDateTime($start, $end);
+    }
+
     public static function niceDiffFromDateTime(\DateTime $start, $end = null) : string
     {
         if (!$end) {
@@ -33,6 +43,7 @@ class Tool
                 case 'h': $order = 'hour'; break;
                 case 'i': $order = 'minute'; break;
                 case 's': $order = 'second'; break;
+                default: break 2;
             }
             if ($value > 0) {
                 if ($value > 1) {
@@ -49,25 +60,29 @@ class Tool
         return $minutes * 60;
     }
 
-    public static function secondsFromHours(int $hours) :int
+    public static function secondsFromHours(int $hours) : int
     {
         return self::secondsFromMinutes($hours * 60);
     }
 
-    public static function secondsFromDays(int $days) :int
+    public static function secondsFromDays(int $days) : int
     {
         return self::secondsFromHours($days * 24);
     }
 
-    public static function secondsFromWeeks(int $weeks) :int
+    public static function secondsFromWeeks(int $weeks) : int
     {
         return self::secondsFromDays($weeks * 7);
     }
 
     /**
      * We settle for 30.5, since it's close enough.
+     *
+     * @param int $months
+     *
+     * @return int
      */
-    public static function secondsFromMonth(int $months) :int
+    public static function secondsFromMonth(int $months) : int
     {
         return self::secondsFromDays($months * 30.5);
     }

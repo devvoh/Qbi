@@ -11,6 +11,7 @@ class PluginManager
     protected $communicator;
     protected $output;
     protected $hook;
+    protected $file;
 
     protected $commands = [];
     protected $triggers = [];
@@ -20,16 +21,22 @@ class PluginManager
         Config $config,
         Communicator $communicator,
         Output $output,
-        Hook $hook
+        Hook $hook,
+        File $file
     ) {
         $this->config       = $config;
         $this->communicator = $communicator;
         $this->output       = $output;
         $this->hook         = $hook;
+        $this->file         = $file;
     }
 
     public function init()
     {
+        $this->commands = [];
+        $this->triggers = [];
+        $this->tasks    = [];
+
         $this->loadPlugins('Commands');
         $this->loadPlugins('Triggers');
         $this->loadPlugins('Tasks');
@@ -37,6 +44,7 @@ class PluginManager
 
     public function loadPlugins($pluginType)
     {
+
         $this->output->writeDateIfEnabled();
 
         $pluginTypeString = str_pad($pluginType, 10, ".");
@@ -70,13 +78,14 @@ class PluginManager
     /**
      * Commands are player chat-triggered. Application::QBI_COMMAND [keyword] will activate.
      *
+     * @param string   $name
      * @param string[] $keywords
      * @param string   $description
      * @param callable $callable
      */
-    public function addCommand(array $keywords, string $description, callable $callable)
+    public function addCommand(string $name, array $keywords, string $description, callable $callable)
     {
-        $this->commands[] = [
+        $this->commands[$name] = [
             'keywords'    => $keywords,
             'description' => $description,
             'callable'    => $callable,
@@ -86,12 +95,13 @@ class PluginManager
     /**
      * Triggers can't be activated by players, but only by non-player chat strings in the log.
      *
+     * @param string   $name
      * @param string[] $triggerStrings
      * @param callable $callable
      */
-    public function addTrigger(array $triggerStrings, callable $callable)
+    public function addTrigger(string $name, array $triggerStrings, callable $callable)
     {
-        $this->triggers[] = [
+        $this->triggers[$name] = [
             'triggerStrings' => $triggerStrings,
             'callable'       => $callable,
         ];
@@ -104,14 +114,15 @@ class PluginManager
      * Some Commands or Triggers might add a Task to the PluginManager to delay an action without blocking Qbi from
      * handling other events.
      *
+     * @param string   $name
      * @param \DateTime $intervalStart
      * @param int       $intervalSeconds
      * @param callable  $callable
      * @param int       $runTimes
      */
-    public function addTask(\DateTime $intervalStart, int $intervalSeconds, callable $callable, $runTimes = 0)
+    public function addTask(string $name, \DateTime $intervalStart, int $intervalSeconds, callable $callable, $runTimes = 0)
     {
-        $this->tasks[] = [
+        $this->tasks[$name] = [
             'intervalStart'   => $intervalStart->getTimestamp(),
             'intervalSeconds' => $intervalSeconds,
             'callable'        => $callable,
@@ -121,16 +132,15 @@ class PluginManager
         ];
     }
 
-    public function handleLineAsCommand(Line $line) : bool
+    public function handleLineAsCommand(Line $line)
     {
-        foreach ($this->commands as $command) {
+        foreach ($this->commands as $name => $command) {
             if ($this->isMatchingCommand($command, $line)) {
                 $callable = $command['callable'];
                 $callable($line);
-                return true;
+                $this->output->writeln('[COMMAND] ' . $name . ' has executed (player: ' . $line->getPlayerName() . ')');
             }
         }
-        return false;
     }
 
     public function isMatchingCommand(array $command, Line $line) : bool
@@ -138,16 +148,17 @@ class PluginManager
         return in_array($line->getCommandString(), $command['keywords']);
     }
 
-    public function handleLineAsTrigger(Line $line) : bool
+    public function handleLineAsTrigger(Line $line)
     {
-        foreach ($this->triggers as $trigger) {
+        foreach ($this->triggers as $name => $trigger) {
             if ($this->isMatchingTrigger($trigger, $line)) {
                 $callable = $trigger['callable'];
                 $callable($line);
-                return true;
+
+                $playerString = $line->getPlayerName() == '' ?:  ' (player: ' . $line->getPlayerName() . ')';
+                $this->output->writeln('[TRIGGER] ' . $name . ' has executed' . $playerString);
             }
         }
-        return false;
     }
 
     public function isMatchingTrigger(array $trigger, Line $line) : bool
@@ -178,29 +189,34 @@ class PluginManager
         return $this->config;
     }
 
+    public function getFile() : File
+    {
+        return $this->file;
+    }
+
     public function runTasks() {
         if (count($this->tasks) == 0) {
-            return false;
+            return;
         }
 
         $now_timestamp = time();
-        foreach ($this->tasks as $key => $task) {
+        foreach ($this->tasks as $name => $task) {
             $diff_in_seconds = $now_timestamp - $task['lastRan'];
             if ($task['lastRan'] !== $now_timestamp
                 && $diff_in_seconds % $task['intervalSeconds'] === 0
             ) {
                 $callable = $task['callable'];
                 $callable();
+                $this->output->writeln('[TASK] ' . $name . ' has executed.');
 
-                $this->tasks[$key]['lastRan'] = $now_timestamp;
+                $this->tasks[$name]['lastRan'] = $now_timestamp;
 
                 $task['runCount']++;
                 if ($task['runTimes'] !== 0 && $task['runCount'] >= $task['runTimes']) {
-                    unset($this->tasks[$key]);
+                    unset($this->tasks[$name]);
                 }
             }
         }
-        return true;
     }
 
 }

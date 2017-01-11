@@ -2,11 +2,12 @@
 
 namespace QbiPlugins\Triggers;
 
-class PlayerLeave
+class PlayerLeaveAcknowledge
 {
     public function init(\Qbi\PluginManager $pluginManager)
     {
         $pluginManager->addTrigger(
+            'PlayerLeaveAcknowledge',
             ['left the game'],
             function(\Qbi\Parser\Line $line) use ($pluginManager) {
                 $pluginManager->getCommunicator()->say(

@@ -7,6 +7,7 @@ class Spawn
     public function init(\Qbi\PluginManager $pluginManager)
     {
         $pluginManager->addCommand(
+            'Spawn',
             ['spawn', 's'],
             'This will teleport back to spawn.',
             function(\Qbi\Parser\Line $line) use ($pluginManager) {

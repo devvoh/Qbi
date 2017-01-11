@@ -78,6 +78,6 @@ class Communicator
             $value = str_replace("'", "’", $value);
         }
         $json = json_encode($array);
-        return $json;
+        return '["",' . $json . ']';
     }
 }

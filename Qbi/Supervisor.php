@@ -38,13 +38,14 @@ class Supervisor
 
     public function start() : Supervisor
     {
+        $this->output->writeln('Starting Supervisor...');
         $this->checkCurrentStatus();
         $this->output->writeDateIfEnabled();
         $this->output->write('Initial status of services: ');
 
         // If server says OK but screen does not, we're out of sync. Set the server to OFF
         if (!$this->screenStatus && $this->serverStatus) {
-            $this->file->putContent("server.status", "OFF");
+            $this->file->putContent("storage/server.status", "OFF");
             $this->serverStatus = false;
         }
 
@@ -84,7 +85,7 @@ class Supervisor
 
     public function checkServerStatus() : bool
     {
-        $this->serverStatus = $this->file->exists("server.status") && $this->file->getContent("server.status") === "ON";
+        $this->serverStatus = $this->file->exists("storage/server.status") && $this->file->getContent("storage/server.status") === "ON";
         return $this->serverStatus;
     }
 
@@ -99,6 +100,10 @@ class Supervisor
     protected function startScreen()
     {
         $screenName = $this->config->get('screen.name');
+        if (!$screenName) {
+            throw new Exception('screen.name is not set in config.json');
+        }
+
         $this->output->writeDateIfEnabled();
         $this->output->write("Starting screen '{$screenName}'...");
 
@@ -112,6 +117,10 @@ class Supervisor
     protected function endScreen()
     {
         $screenName = $this->config->get('screen.name');
+        if (!$screenName) {
+            throw new Exception('screen.name is not set in config.json');
+        }
+
         $this->output->writeDateIfEnabled();
         $this->output->write("Ending screen '{$screenName}'...");
 
@@ -132,6 +141,10 @@ class Supervisor
         $serverLocation = $this->config->get('server.location');
         $serverJar      = $this->config->get('server.jar');
 
+        if (!$serverLocation || !$serverJar) {
+            throw new Exception('server.location and/or server.jar are not set in config.json');
+        }
+
         $serverPath     = realpath(__DIR__ . '/..') . '/' . $serverLocation . '/' . $serverJar;
 
         if (!$this->file->exists($serverPath)) {
@@ -141,7 +154,7 @@ class Supervisor
         $this->file->delete($serverLocation . '/logs/latest.log');
         $this->parser->init();
 
-        $this->file->putContent("server.status", "ON");
+        $this->file->putContent("storage/server.status", "ON");
 
         $command[] = 'java';
         $command[] = '-Xmx' . $this->config->get('server.xmx') . 'M';
@@ -151,7 +164,7 @@ class Supervisor
         $command[] = 'nogui';
         // We need to let the command we're sending to screen write OFF to server.status, for which we need the
         // current working directory
-        $command[] = ';echo "OFF" > ' . getcwd() . '/server.status';
+        $command[] = ';echo "OFF" > ' . getcwd() . '/storage/server.status';
 
         $commandString = implode(' ', $command);
 

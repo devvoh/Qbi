@@ -29,7 +29,7 @@ class Application
         $this->parser        = $parser;
         $this->output        = $output;
         $this->input         = $input;
-
+        
         $this->parser->init();
     }
 
@@ -38,13 +38,12 @@ class Application
         $this->output->writelns([
             'Qbi version ' . self::VERSION . ' - Minecraft Server Monitor',
             '--------------------------------------------',
-            'Starting Supervisor...',
+            'Loading Plugins:',
         ]);
 
-        $this->supervisor->start();
-
-        $this->output->writeln('Loading Plugins:');
         $this->pluginManager->init();
+
+        $this->supervisor->start();
 
         $this->output->writeln("Monitoring...");
         for (;;) {
@@ -53,7 +52,7 @@ class Application
                 $this->supervisor->restart();
             }
 
-            usleep(250000);
+            usleep(500000);
 
             $lines = $this->parser->go();
             foreach ($lines as $line) {

@@ -1,0 +1,37 @@
+{
+    "screen": {
+        "name": "mc_server_screen"
+    },
+    "server": {
+        "location": "mc-server",
+        "jar": "server.jar",
+        "xmx": 1024,
+        "xms": 1024
+    },
+    "http": {
+        "generate": true,
+        "target": {
+            "dir": "html/qbi",
+            "file": "index.html"
+        },
+        "page": {
+            "title": "Qbi page"
+        }
+    },
+    "plugins": {
+        "commands": [
+            "Uptime",
+            "Spawn",
+            "Help",
+            "Played"
+        ],
+        "triggers": [
+            "PlayerJoinAcknowledge",
+            "PlayerLeaveAcknowledge",
+            "UpdateKnownPlayers"
+        ],
+        "tasks": [
+            "Midnight"
+        ]
+    }
+}
