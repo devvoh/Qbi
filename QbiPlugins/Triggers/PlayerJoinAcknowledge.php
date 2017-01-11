@@ -24,13 +24,15 @@ class PlayerJoinAcknowledge
                         $configTitle = $pluginManager->getConfig()->get('pluginSettings.triggers.PlayerJoinAcknowledge.title');
                         if ($configTitle) {
                             $title = $configTitle;
-                            $title = str_replace('{playerName}', $line->getPlayerName(), $title);
                         }
                         $configSubtitle = $pluginManager->getConfig()->get('pluginSettings.triggers.PlayerJoinAcknowledge.subtitle');
                         if ($configSubtitle) {
                             $subtitle = $configSubtitle;
-                            $subtitle = str_replace('{playerName}', $line->getPlayerName(), $subtitle);
                         }
+
+                        $title = str_replace('{playerName}', $line->getPlayerName(), $title);
+                        $subtitle = str_replace('{playerName}', $line->getPlayerName(), $subtitle);
+
                         $configColor = $pluginManager->getConfig()->get('pluginSettings.triggers.PlayerJoinAcknowledge.color');
                         if ($configColor) {
                             $color = $configColor;
