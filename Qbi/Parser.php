@@ -9,7 +9,9 @@ class Parser
     protected $file;
     protected $output;
     protected $input;
-    protected $logLocation;
+
+    /** @var string */
+    protected $serverOutputPath = '';
 
     /** @var int */
     protected $lastLineParsed = 0;
@@ -34,7 +36,7 @@ class Parser
         $this->output = $output;
         $this->input  = $input;
 
-        $this->logLocation = $this->config->get('server.location') . '/logs/latest.log';
+        $this->serverOutputPath = getcwd() . '/storage/server.output';
     }
 
     public function init() : Parser
@@ -51,11 +53,6 @@ class Parser
     {
         $lines = $this->getLines();
 
-        // We only want the lines we consider to be new
-        $lines = array_slice($lines, $this->lastLineParsed);
-
-        $linesNew = count($lines);
-
         $parsedLines = [];
         foreach ($lines as $lineString) {
             /** @var \Qbi\Parser\Line $line */
@@ -63,9 +60,6 @@ class Parser
             $line->setString($lineString);
 
             $parsedLines[] = $line;
-
-            // Up the last line parsed ALWAYS
-            $this->lastLineParsed++;
         }
 
         return $parsedLines;
@@ -76,11 +70,11 @@ class Parser
      */
     public function getLines() : array
     {
-        if (!$this->file->exists($this->logLocation)) {
+        if (!$this->file->exists($this->serverOutputPath)) {
             return [];
         }
 
-        $lines = $this->file->getContent($this->logLocation);
+        $lines = $this->file->getContent($this->serverOutputPath);
         return explode(PHP_EOL, $lines);
     }
 }
