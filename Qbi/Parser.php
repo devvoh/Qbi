@@ -53,6 +53,9 @@ class Parser
     {
         $lines = $this->getLines();
 
+        // We only want the lines we consider to be new
+        $lines = array_slice($lines, $this->lastLineParsed);
+
         $parsedLines = [];
         foreach ($lines as $lineString) {
             /** @var \Qbi\Parser\Line $line */
@@ -60,6 +63,9 @@ class Parser
             $line->setString($lineString);
 
             $parsedLines[] = $line;
+
+            // Up the last line parsed ALWAYS
+            $this->lastLineParsed++;
         }
 
         return $parsedLines;
