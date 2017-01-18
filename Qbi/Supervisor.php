@@ -151,7 +151,9 @@ class Supervisor
             throw new Error("Server could not be found at '{$serverPath}'");
         }
 
-        $this->file->delete($serverLocation . '/logs/latest.log');
+        // Delete existing server.output file
+        $this->file->delete(getcwd() . '/storage/server.output');
+
         $this->parser->init();
 
         $this->file->putContent("storage/server.status", "ON");
@@ -162,6 +164,8 @@ class Supervisor
         $command[] = '-jar';
         $command[] = $serverJar;
         $command[] = 'nogui';
+        // We need to send all output to qbi.buffer so we can read it out
+        $command[] = ' > ' . getcwd() . '/storage/server.output';
         // We need to let the command we're sending to screen write OFF to server.status, for which we need the
         // current working directory
         $command[] = ';echo "OFF" > ' . getcwd() . '/storage/server.status';
