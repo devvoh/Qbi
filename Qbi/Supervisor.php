@@ -151,9 +151,6 @@ class Supervisor
             throw new Error("Server could not be found at '{$serverPath}'");
         }
 
-        // Delete existing server.output file
-        $this->file->delete(getcwd() . '/storage/server.output');
-
         $this->parser->init();
 
         $this->file->putContent("storage/server.status", "ON");

@@ -14,7 +14,7 @@ class CleanServerOutput
                 $serverOutputLocation = getcwd() . '/storage/server.output';
                 $file = $pluginManager->getFile();
                 if ($file->exists($serverOutputLocation)) {
-                    $file->delete($serverOutputLocation);
+                    $file->put($serverOutputLocation, '');
                 }
             }
         );
