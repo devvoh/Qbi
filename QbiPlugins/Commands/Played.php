@@ -16,19 +16,34 @@ class Played
                 $json = $pluginManager->getFile()->getContent('storage/known_players.json');
                 $players = json_decode($json, true);
 
-                $playedSession = time() - $players[$line->getPlayerName()]['startPlaying'];
+                $arguments = $line->getCommandArguments();
+                if (!empty($arguments[0])) {
+                    $playerName = $arguments[0];
+                } else {
+                    $playerName = $line->getPlayerName();
+                }
+
+                if (!isset($players[$playerName])) {
+                    $pluginManager->getCommunicator()->say(
+                        "I have no record of a player called `{$playerName}`."
+                    );
+                    return;
+                }
+
+                $playedSession = time() - $players[$playerName]['startPlaying'];
 
                 $timePlayed        = Tool::niceDiffFromSeconds(
-                    $players[$line->getPlayerName()]['timePlayed'] + $playedSession
+                    $players[$playerName]['timePlayed'] + $playedSession
                 );
                 $timePlayedSession = Tool::niceDiffFromSeconds(
                     $playedSession
                 );
 
                 $pluginManager->getCommunicator()->say(
-                    "You have played for {$timePlayedSession} this session and {$timePlayed} in total."
+                    "{$playerName} has played for {$timePlayedSession} this session and {$timePlayed} in total."
                 );
-            }
+            },
+            ['playerName']
         );
     }
 }

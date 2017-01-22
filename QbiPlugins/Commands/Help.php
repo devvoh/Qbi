@@ -21,9 +21,17 @@ class Help
 
                 foreach ($commands as $command) {
                     $commandString = implode(' | ', $command['keywords']);
+                    $commandString = "q {$commandString}";
+
+                    if (count($command['arguments']) > 0) {
+                        $commandString .= ' <';
+                        $commandString .= implode('|', $command['arguments']);
+                        $commandString .= '>';
+                    }
+
                     $pluginManager->getCommunicator()->tellRaw(
                         $line->getPlayerName(),
-                        "q $commandString"
+                        $commandString
                     );
                     // sleep just a little so as to not overwhelm the server (odd but necessary)
                     usleep(10000);

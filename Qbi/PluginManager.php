@@ -82,13 +82,15 @@ class PluginManager
      * @param string[] $keywords
      * @param string   $description
      * @param callable $callable
+     * @param string[] $arguments
      */
-    public function addCommand(string $name, array $keywords, string $description, callable $callable)
+    public function addCommand(string $name, array $keywords, string $description, callable $callable, array $arguments = [])
     {
         $this->commands[$name] = [
             'keywords'    => $keywords,
             'description' => $description,
             'callable'    => $callable,
+            'arguments'   => $arguments,
         ];
     }
 

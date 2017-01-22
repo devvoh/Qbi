@@ -6,12 +6,13 @@ use \Qbi\Application;
 
 class Line
 {
-    protected $string        = '';
-    protected $time          = '';
-    protected $serverLabel   = '';
-    protected $playerName    = '';
-    protected $playerMessage = '';
-    protected $commandString = '';
+    protected $string           = '';
+    protected $time             = '';
+    protected $serverLabel      = '';
+    protected $playerName       = '';
+    protected $playerMessage    = '';
+    protected $commandString    = '';
+    protected $commandArguments = [];
 
     /**
      * Our toggles
@@ -81,6 +82,11 @@ class Line
     public function getCommandString() : string
     {
         return $this->commandString;
+    }
+
+    public function getCommandArguments() : array
+    {
+        return $this->commandArguments;
     }
 
     public function getString() : string
@@ -169,7 +175,12 @@ class Line
     protected function extractCommand(string $string)
     {
         $commandString = Application::QBI_COMMAND . ' ';
-        $this->commandString = str_replace($commandString, "", $string);
+        $string = str_replace($commandString, "", $string);
+        $stringParts = explode(' ', $string);
+        $this->commandString = array_shift($stringParts);
+        if (count($stringParts) > 0) {
+            $this->commandArguments = $stringParts;
+        }
     }
 
     protected function extractPlayerName(string $string)
