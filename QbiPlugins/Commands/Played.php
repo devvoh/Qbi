@@ -30,18 +30,26 @@ class Played
                     return;
                 }
 
-                $playedSession = time() - $players[$playerName]['startPlaying'];
+                // If 'startPlaying' exists as a key, the player is supposedly currently online.
+                if (isset($players[$playerName]['startPlaying'])) {
+                    $playedSession = time() - $players[$playerName]['startPlaying'];
 
-                $timePlayed        = Tool::niceDiffFromSeconds(
-                    $players[$playerName]['timePlayed'] + $playedSession
-                );
-                $timePlayedSession = Tool::niceDiffFromSeconds(
-                    $playedSession
-                );
+                    $timePlayed        = Tool::niceDiffFromSeconds(
+                        $players[$playerName]['timePlayed'] + $playedSession
+                    );
+                    $timePlayedSession = Tool::niceDiffFromSeconds(
+                        $playedSession
+                    );
 
-                $pluginManager->getCommunicator()->say(
-                    "{$playerName} has played for {$timePlayedSession} this session and {$timePlayed} in total."
-                );
+                    $pluginManager->getCommunicator()->say(
+                        "{$playerName} has played for {$timePlayedSession} this session and {$timePlayed} in total."
+                    );
+                } else {
+                    $timePlayed = Tool::niceDiffFromSeconds($players[$playerName]['timePlayed']);
+                    $pluginManager->getCommunicator()->say(
+                        "{$playerName} has played for {$timePlayed} in total."
+                    );
+                }
             },
             ['playerName']
         );
